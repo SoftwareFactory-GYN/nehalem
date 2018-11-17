@@ -1,5 +1,5 @@
 
-# Setup Tutorial 
+# Setup instructions for local development 
 
 ## Required software: 
 - go (https://golang.org/doc/install)
