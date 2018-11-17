@@ -28,3 +28,15 @@ var GetTokenHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 	/* Finally, write the token to the browser window */
 	w.Write([]byte(tokenString))
 })
+
+var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	w.Write([]byte("Login page should go here"))
+
+})
+
+var IndexHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	w.Write([]byte("Index page should go here"))
+
+})
