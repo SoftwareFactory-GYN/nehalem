@@ -34,9 +34,9 @@ CREATE TABLE users(
 # TODO List:
 
 ## Rest API
--[ ] Create a salt and hash function [See this link for more help](https://medium.com/@jcox250/password-hash-salt-using-golang-b041dc94cb72)
--[ ] Create a Utils package 
--[ ] Create a program to seed the database with users in the Utils package  
--[ ] Implement Token auth with user via POST on the Login Handler
+- [ ] Create a salt and hash function [See this link for more help](https://medium.com/@jcox250/password-hash-salt-using-golang-b041dc94cb72)
+- [ ] Create a Utils package 
+- [ ] Create a program to seed the database with users in the Utils package  
+- [ ] Implement Token auth with user via POST on the Login Handler
 
 
