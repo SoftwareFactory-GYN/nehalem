@@ -1,5 +1,6 @@
 package main
 
+import "C"
 import (
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
@@ -11,6 +12,7 @@ var mySigningKey = []byte("secret")
 
 // JWT creation endpoint
 var GetTokenHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 	/* Create the token */
 	token := jwt.New(jwt.SigningMethodHS256)
 
@@ -30,9 +32,7 @@ var GetTokenHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 })
 
 var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 	w.Write([]byte("Login page should go here"))
-
 })
 
 var IndexHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
