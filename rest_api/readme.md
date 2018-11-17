@@ -14,10 +14,12 @@
 ` docker run -it --link dev_cassandra:cassandra --rm cassandra cqlsh cassandra`
 
 ### 03. Run the following commands in the db cli session to create database and tables:
-`CREATE KEYSPACE nehalem WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 1};`
-`USE nehalem;`
-`CREATE TABLE users(
+```sql
+CREATE KEYSPACE nehalem WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 1};
+USE nehalem;
+CREATE TABLE users(
     id UUID PRIMARY KEY,
     username text,
     password text,
- );`
+ ); 
+```
