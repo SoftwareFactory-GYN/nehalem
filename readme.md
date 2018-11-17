@@ -16,7 +16,7 @@
 
 ### Wait 30s for db to start 
 
-### 03. Them start the cli session:
+### 03. Then start the cli session:
 ` docker run -it --link dev_cassandra:cassandra --rm cassandra cqlsh cassandra`
 
 ### 04. Run the following commands in the db cli session to create database and tables:
