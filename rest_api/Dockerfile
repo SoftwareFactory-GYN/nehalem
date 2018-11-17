@@ -6,11 +6,11 @@ RUN apk add git
 
 RUN go get -u github.com/golang/dep/cmd/dep
 
-RUN mkdir $GOPATH/src/webapp
-WORKDIR $GOPATH/src/webapp
-ADD . $GOPATH/src/webapp/
+RUN mkdir $GOPATH/src/rest_api
+WORKDIR $GOPATH/src/rest_api
+ADD . $GOPATH/src/rest_api/
 RUN dep ensure
 RUN go build
 
-CMD ["go", "/webapp/webapp"]
+CMD ["go", "/rest_api/rest_api"]
 
