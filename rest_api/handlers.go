@@ -1,6 +1,5 @@
 package main
 
-import "C"
 import (
 	"github.com/dgrijalva/jwt-go"
 	"net/http"

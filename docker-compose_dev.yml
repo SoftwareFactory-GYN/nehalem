@@ -1,0 +1,17 @@
+version: '3'
+services:
+  cassandra:
+    image: "cassandra"
+
+  redis:
+    image: "redis:alpine"
+
+
+
+
+
+
+
+
+
+
