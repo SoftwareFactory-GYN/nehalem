@@ -3,7 +3,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:99e965b004c4fdbb115f91ebd5853341c82f28d0ed286af5ed7e8ed134ad8d87"
+  digest = "1:9b990b1cd213f4036110e5e3586a946a332226e45ef45fadaf9bee4be4fbaa52"
   name = "github.com/SoftwareFactory-GYN/nehalem"
   packages = [
     "rest_api/db",
@@ -11,7 +11,7 @@
     "rest_api/user",
   ]
   pruneopts = "UT"
-  revision = "e3798f1d9ff32d8e4e65b35816b25b4c5eafe093"
+  revision = "4128bd0283ee154be964adff42e6911be7eccb99"
 
 [[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
