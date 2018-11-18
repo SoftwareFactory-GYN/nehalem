@@ -33,10 +33,21 @@ CREATE TABLE users(
 ---
 # TODO List:
 
-## Rest API
-- [ ] Create a salt and hash function [See this link for more help](https://medium.com/@jcox250/password-hash-salt-using-golang-b041dc94cb72)
+- [x] Create a salt and hash function [See this link for more help](https://medium.com/@jcox250/password-hash-salt-using-golang-b041dc94cb72)
+- [x] Implement Token auth with user via POST on the Login Handler
 - [ ] Create a Utils package 
-- [ ] Create a program to seed the database with users in the Utils package  
-- [ ] Implement Token auth with user via POST on the Login Handler
+- [ ] Create a program to seed the database with users in the Utils package
+- [ ] Implement client login and home page
+- [ ] Implement repository fetch list on rest_api
+- [ ] Implement client repository list 
+- [ ] Implement repository creation on rest_api
+- [ ] Implement repository creation on client
+- [ ] Implement repository download
+- [ ] Implement client list of commits in repository
+- [ ] Implement Docker run lint in files in specific commit
+- [ ] Implement store of lint for specific commit
+- [ ] Implement client statistics page for specific commit
+- [ ] Implement client statistics for commit ranges, ie last 10 commits, last 50 commits, ect    
+  
 
 
