@@ -1,4 +1,4 @@
-package main
+package db
 
 import (
 	"github.com/gocql/gocql"
@@ -7,7 +7,7 @@ import (
 
 var Session *gocql.Session
 
-func cassandraInit() {
+func CassandraInit() {
 	var err error
 
 	cluster := gocql.NewCluster("localhost")
@@ -18,4 +18,8 @@ func cassandraInit() {
 	}
 
 	log.Println("cassandra init done")
+}
+
+func GetSession() *gocql.Session {
+	return Session
 }

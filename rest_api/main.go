@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/SoftwareFactory-GYN/nehalem/rest_api/db"
 	"github.com/gocql/gocql"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -26,8 +27,8 @@ func initRouter(r *mux.Router) {
 func main() {
 
 	// Cassandra init
-	cassandraInit()
-	CassandraSession = Session
+	db.CassandraInit()
+	CassandraSession = db.GetSession()
 	defer CassandraSession.Close()
 
 	r := mux.NewRouter()
