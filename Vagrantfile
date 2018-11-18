@@ -31,7 +31,7 @@ Vagrant.configure("2") do |config|
        stable"
     sudo apt-get update
     sudo apt-get install -y docker-ce
-    curl https://storage.googleapis.com/golang/go1.10.1.linux-amd64.tar.gz > /tmp/golang.tar.gz
+    curl https://storage.googleapis.com/golang/go1.11.1.linux-amd64.tar.gz > /tmp/golang.tar.gz
     sudo tar -C /usr/local -xzf /tmp/golang.tar.gz
     echo "export PATH=$PATH:/usr/local/go/bin:/home/ubuntu/go/bin" >> /home/ubuntu/.bashrc
     echo "export GOPATH=/home/ubuntu/go" >> /home/ubuntu/.bashrc
