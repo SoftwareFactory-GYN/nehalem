@@ -65,7 +65,7 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 		}
 	}
 	if !allFound {
-		errString := fmt.Sprintf("%s: Missing %s param", http.StatusText(http.StatusBadRequest), missingParam)
+		errString := fmt.Sprintf("%s: missing %s param", http.StatusText(http.StatusBadRequest), missingParam)
 		http.Error(w, errString, http.StatusBadRequest)
 		return
 	}
@@ -77,7 +77,7 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 
 	if !attemptingUser.exists() {
 		invalid := InvalidResponse{
-			"User not found",
+			"user not found",
 		}
 
 		b, _ := json.Marshal(invalid)
@@ -103,7 +103,7 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 	}
 
 	invalid := InvalidResponse{
-		"Invalid password",
+		"invalid password",
 	}
 
 	b, _ := json.Marshal(invalid)
