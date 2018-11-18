@@ -1,13 +1,27 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gocql/gocql"
+	"golang.org/x/crypto/bcrypt"
+	"log"
 	"net/http"
 	"reflect"
 	"time"
 )
+
+type User struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+type UserToken struct {
+	Token string `json:"token"`
+}
+type InvalidResponse struct {
+	Error string `json:"detail"`
+}
 
 // This function will search element inside array with any type.
 // Will return boolean and index for matched element.
@@ -31,6 +45,41 @@ func InArray(needle interface{}, haystack interface{}) (exists bool, index int) 
 	}
 
 	return
+}
+
+// Salt and hash
+func hashAndSalt(pwd []byte) string {
+
+	// Use GenerateFromPassword to hash & salt pwd.
+	// MinCost is just an integer constant provided by the bcrypt
+	// package along with DefaultCost & MaxCost.
+	// The cost can be any value you want provided it isn't lower
+	// than the MinCost (4)
+	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
+	if err != nil {
+		log.Println(err)
+	}
+
+	// GenerateFromPassword returns a byte slice so we need to
+	// convert the bytes to a string and return it
+	return string(hash)
+}
+
+func (u *User) getToken() string {
+	/* Create the token */
+	token := jwt.New(jwt.SigningMethodHS256)
+
+	//Create a map to store our claims
+	claims := token.Claims.(jwt.MapClaims)
+
+	/* Set token claims */
+	claims["name"] = u.Username
+	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+
+	/* Sign the token with our secret */
+	tokenString, _ := token.SignedString(mySigningKey)
+
+	return tokenString
 }
 
 /* Set up a global string for our secret */
@@ -89,7 +138,7 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 	}
 
 	username := r.PostForm.Get("username")
-	//password := r.PostForm.Get("password")
+	password := r.PostForm.Get("password")
 
 	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' ALLOW FILTERING", username)
 	iter := CassandraSession.Query(query).Consistency(gocql.One).Iter()
@@ -101,17 +150,41 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	if size == 0 {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		invalid := InvalidResponse{
+			"User not found",
+		}
+
+		b, _ := json.Marshal(invalid)
+		w.Write(b)
 		return
 	}
 
+	m := map[string]interface{}{}
+	iter.MapScan(m)
+
+	user := User{
+		m["username"].(string),
+		m["password"].(string),
+	}
+
 	//salt the provided password and compare here
+	if hashAndSalt([]byte(password)) == hashAndSalt([]byte(user.Password)) {
+		token := UserToken{
+			user.getToken(),
+		}
+		b, _ := json.Marshal(token)
+		w.Write(b)
+		return
+	}
 
-	user := map[string]interface{}{}
-	iter.MapScan(user)
+	invalid := InvalidResponse{
+		"Invalid password",
+	}
 
-	s := fmt.Sprintf("Found: User %s, Password %s ", user["username"], user["password"])
-	w.Write([]byte(s))
+	b, _ := json.Marshal(invalid)
+	w.Write(b)
+	return
+
 })
 
 var IndexHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
