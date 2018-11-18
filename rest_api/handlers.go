@@ -101,7 +101,7 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 	}
 
 	//salt the provided password and compare here
-	if hashAndSalt([]byte(password)) == hashAndSalt([]byte(user.Password)) {
+	if comparePasswords(user.Password, []byte(password)) {
 		token := UserToken{
 			user.getToken(),
 		}
