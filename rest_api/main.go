@@ -19,8 +19,8 @@ func initRouter(r *mux.Router) {
 	// Endpoint used to serve login page
 	r.Handle("/login", LoginHandler).Methods("POST")
 
-	// Endpoint used to create new JWT's
-	r.Handle("/get-token", GetTokenHandler).Methods("GET")
+	// Endpoint for registering
+	r.Handle("/register", RegisterHandler).Methods("POST")
 
 	//Index endpoint
 	r.Handle("/", jwtMiddleware.Handler(IndexHandler)).Methods("GET")

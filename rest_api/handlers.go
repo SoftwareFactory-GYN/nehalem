@@ -3,22 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gocql/gocql"
-	"golang.org/x/crypto/bcrypt"
-	"log"
 	"net/http"
 	"reflect"
-	"time"
 )
 
-type User struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-type UserToken struct {
-	Token string `json:"token"`
-}
 type InvalidResponse struct {
 	Error string `json:"detail"`
 }
@@ -47,64 +36,8 @@ func InArray(needle interface{}, haystack interface{}) (exists bool, index int) 
 	return
 }
 
-// Salt and hash
-func hashAndSalt(pwd []byte) string {
-
-	// Use GenerateFromPassword to hash & salt pwd.
-	// MinCost is just an integer constant provided by the bcrypt
-	// package along with DefaultCost & MaxCost.
-	// The cost can be any value you want provided it isn't lower
-	// than the MinCost (4)
-	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
-	if err != nil {
-		log.Println(err)
-	}
-
-	// GenerateFromPassword returns a byte slice so we need to
-	// convert the bytes to a string and return it
-	return string(hash)
-}
-
-func (u *User) getToken() string {
-	/* Create the token */
-	token := jwt.New(jwt.SigningMethodHS256)
-
-	//Create a map to store our claims
-	claims := token.Claims.(jwt.MapClaims)
-
-	/* Set token claims */
-	claims["name"] = u.Username
-	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
-
-	/* Sign the token with our secret */
-	tokenString, _ := token.SignedString(mySigningKey)
-
-	return tokenString
-}
-
 /* Set up a global string for our secret */
 var mySigningKey = []byte("secret")
-
-// JWT creation endpoint
-var GetTokenHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-	/* Create the token */
-	token := jwt.New(jwt.SigningMethodHS256)
-
-	//Create a map to store our claims
-	claims := token.Claims.(jwt.MapClaims)
-
-	/* Set token claims */
-	claims["admin"] = true
-	claims["name"] = "Ado Kukic"
-	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
-
-	/* Sign the token with our secret */
-	tokenString, _ := token.SignedString(mySigningKey)
-
-	/* Finally, write the token to the browser window */
-	w.Write([]byte(tokenString))
-})
 
 var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -182,6 +115,64 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 	}
 
 	b, _ := json.Marshal(invalid)
+	w.Write(b)
+	return
+
+})
+
+var RegisterHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := r.ParseMultipartForm(5); err != nil {
+		errString := fmt.Sprintf("%s: %s", http.StatusText(http.StatusInternalServerError), err)
+		http.Error(w, errString, http.StatusInternalServerError)
+		return
+	}
+
+	necessaryStrings := []string{"username", "password"}
+	allFound := true
+	var missingParam string
+	formKeys := make([]string, 0, len(r.PostForm))
+	for k := range r.PostForm {
+		formKeys = append(formKeys, k)
+	}
+	for _, value := range necessaryStrings {
+
+		stringExist, _ := InArray(value, formKeys)
+		if !stringExist {
+			missingParam = value
+			allFound = false
+		}
+	}
+	if !allFound {
+		errString := fmt.Sprintf("%s: Missing %s param", http.StatusText(http.StatusBadRequest), missingParam)
+		http.Error(w, errString, http.StatusBadRequest)
+		return
+	}
+
+	user := User{
+		r.PostForm.Get("username"),
+		r.PostForm.Get("password"),
+	}
+
+	if user.exists() {
+		invalid := InvalidResponse{
+			"User already exists",
+		}
+
+		b, _ := json.Marshal(invalid)
+		w.Write(b)
+		return
+	}
+
+	user.create()
+
+	token := UserToken{
+		user.getToken(),
+	}
+	b, _ := json.Marshal(token)
+	w.WriteHeader(http.StatusCreated)
 	w.Write(b)
 	return
 
