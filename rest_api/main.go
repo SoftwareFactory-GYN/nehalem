@@ -2,14 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/gocql/gocql"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"net/http"
 	"os"
 )
-
-var CassandraSession *gocql.Session
 
 func initRouter(r *mux.Router) {
 
