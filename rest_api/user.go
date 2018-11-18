@@ -52,6 +52,7 @@ func comparePasswords(hashedPwd string, plainPwd []byte) bool {
 
 }
 
+// Create a token for a user
 func (u *User) getToken() string {
 	/* Create the token */
 	token := jwt.New(jwt.SigningMethodHS256)
@@ -69,19 +70,21 @@ func (u *User) getToken() string {
 	return tokenString
 }
 
+// Check if user exists in persistence
 func (u *User) exists() bool {
 
 	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' ALLOW FILTERING", u.Username)
 	iter := CassandraSession.Query(query).Consistency(gocql.One).Iter()
 	size := iter.NumRows()
 
-	if size > 1 {
+	if size > 0 {
 		return true
 	}
 
 	return false
 }
 
+//  Create a new user
 func (u *User) create() error {
 
 	// generate a unique UUID for this user
@@ -97,4 +100,30 @@ func (u *User) create() error {
 	}
 
 	return nil
+}
+
+// Fetch a user from the database
+func fetchUser(username string) (User, error) {
+
+	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' ALLOW FILTERING", username)
+	iter := CassandraSession.Query(query).Consistency(gocql.One).Iter()
+
+	size := iter.NumRows()
+
+	if size == 0 {
+		return User{}, fmt.Errorf("user not found")
+	}
+
+	if size > 1 {
+		return User{}, fmt.Errorf("integrity error: too many users found")
+	}
+
+	m := map[string]interface{}{}
+	iter.MapScan(m)
+
+	return User{
+		m["username"].(string),
+		m["password"].(string),
+	}, nil
+
 }

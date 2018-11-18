@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gocql/gocql"
+	"log"
 	"net/http"
 	"reflect"
 )
@@ -70,19 +70,12 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	username := r.PostForm.Get("username")
-	password := r.PostForm.Get("password")
-
-	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' ALLOW FILTERING", username)
-	iter := CassandraSession.Query(query).Consistency(gocql.One).Iter()
-	size := iter.NumRows()
-
-	if size > 1 {
-		errString := fmt.Sprintf("%s: Too many users found %s", http.StatusText(http.StatusInternalServerError), iter.NumRows())
-		http.Error(w, errString, http.StatusInternalServerError)
-		return
+	attemptingUser := User{
+		r.PostForm.Get("username"),
+		r.PostForm.Get("password"),
 	}
-	if size == 0 {
+
+	if !attemptingUser.exists() {
 		invalid := InvalidResponse{
 			"User not found",
 		}
@@ -92,16 +85,15 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	m := map[string]interface{}{}
-	iter.MapScan(m)
-
-	user := User{
-		m["username"].(string),
-		m["password"].(string),
+	user, err := fetchUser(attemptingUser.Username)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
 	}
 
 	//salt the provided password and compare here
-	if comparePasswords(user.Password, []byte(password)) {
+	if comparePasswords(user.Password, []byte(attemptingUser.Password)) {
 		token := UserToken{
 			user.getToken(),
 		}
