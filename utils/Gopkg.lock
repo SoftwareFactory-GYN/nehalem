@@ -11,7 +11,7 @@
     "rest_api/user",
   ]
   pruneopts = "UT"
-  revision = "892066fc4edfc40ba025bbd4251a294e67ccce51"
+  revision = "e3798f1d9ff32d8e4e65b35816b25b4c5eafe093"
 
 [[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
