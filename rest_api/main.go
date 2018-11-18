@@ -17,7 +17,7 @@ func initRouter(r *mux.Router) {
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 
 	// Endpoint used to serve login page
-	r.Handle("/login", LoginHandler).Methods("GET")
+	r.Handle("/login", LoginHandler).Methods("POST")
 
 	// Endpoint used to create new JWT's
 	r.Handle("/get-token", GetTokenHandler).Methods("GET")
