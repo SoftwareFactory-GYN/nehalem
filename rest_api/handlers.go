@@ -3,10 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/SoftwareFactory-GYN/nehalem/rest_api/secret"
+	"github.com/SoftwareFactory-GYN/nehalem/rest_api/user"
 	"log"
 	"net/http"
 	"reflect"
 )
+
+var mySigningKey = secret.GetSigningKey()
 
 type InvalidResponse struct {
 	Error string `json:"detail"`
@@ -35,9 +39,6 @@ func InArray(needle interface{}, haystack interface{}) (exists bool, index int) 
 
 	return
 }
-
-/* Set up a global string for our secret */
-var mySigningKey = []byte("secret")
 
 var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -70,12 +71,12 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	attemptingUser := User{
+	attemptingUser := user.User{
 		r.PostForm.Get("username"),
 		r.PostForm.Get("password"),
 	}
 
-	if !attemptingUser.exists() {
+	if !attemptingUser.Exists() {
 		invalid := InvalidResponse{
 			"user not found",
 		}
@@ -85,7 +86,7 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	user, err := fetchUser(attemptingUser.Username)
+	existingUser, err := user.FetchUser(attemptingUser.Username)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
@@ -93,9 +94,9 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 	}
 
 	//salt the provided password and compare here
-	if comparePasswords(user.Password, []byte(attemptingUser.Password)) {
-		token := UserToken{
-			user.getToken(),
+	if user.ComparePasswords(existingUser.Password, []byte(attemptingUser.Password)) {
+		token := user.UserToken{
+			existingUser.GetToken(),
 		}
 		b, _ := json.Marshal(token)
 		w.Write(b)
@@ -143,12 +144,12 @@ var RegisterHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	user := User{
+	newUser := user.User{
 		r.PostForm.Get("username"),
 		r.PostForm.Get("password"),
 	}
 
-	if user.exists() {
+	if newUser.Exists() {
 		invalid := InvalidResponse{
 			"User already exists",
 		}
@@ -158,10 +159,10 @@ var RegisterHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	user.create()
+	newUser.Create()
 
-	token := UserToken{
-		user.getToken(),
+	token := user.UserToken{
+		newUser.GetToken(),
 	}
 	b, _ := json.Marshal(token)
 	w.WriteHeader(http.StatusCreated)
