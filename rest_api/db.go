@@ -10,7 +10,7 @@ var Session *gocql.Session
 func cassandraInit() {
 	var err error
 
-	cluster := gocql.NewCluster("127.0.0.1")
+	cluster := gocql.NewCluster("localhost")
 	cluster.Keyspace = "nehalem"
 	Session, err = cluster.CreateSession()
 	if err != nil {

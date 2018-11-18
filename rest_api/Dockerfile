@@ -10,7 +10,8 @@ RUN mkdir $GOPATH/src/rest_api
 WORKDIR $GOPATH/src/rest_api
 ADD . $GOPATH/src/rest_api/
 RUN dep ensure
-RUN go build
+RUN go install
 
-CMD ["go", "/rest_api/rest_api"]
+
+CMD ["rest_api"]
 
