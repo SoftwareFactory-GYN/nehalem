@@ -76,6 +76,7 @@ func (u *User) GetToken() string {
 func (u *User) Exists() bool {
 
 	CassandraSession := db.GetSession()
+	defer CassandraSession.Close()
 
 	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' ALLOW FILTERING", u.Username)
 	iter := CassandraSession.Query(query).Consistency(gocql.One).Iter()
@@ -92,9 +93,10 @@ func (u *User) Exists() bool {
 func (u *User) Create() error {
 
 	CassandraSession := db.GetSession()
+	defer CassandraSession.Close()
 
 	// generate a unique UUID for this user
-	userID := gocql.TimeUUID()
+	userID, _ := gocql.RandomUUID()
 
 	// Salt the password
 	password := HashAndSalt([]byte(u.Password))
@@ -112,6 +114,7 @@ func (u *User) Create() error {
 func FetchUser(username string) (User, error) {
 
 	CassandraSession := db.GetSession()
+	defer CassandraSession.Close()
 
 	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' ALLOW FILTERING", username)
 	iter := CassandraSession.Query(query).Consistency(gocql.One).Iter()
