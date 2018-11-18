@@ -96,7 +96,7 @@ func (u *User) Create() error {
 	defer CassandraSession.Close()
 
 	// generate a unique UUID for this user
-	userID := gocql.TimeUUID()
+	userID, _ := gocql.RandomUUID()
 
 	// Salt the password
 	password := HashAndSalt([]byte(u.Password))
