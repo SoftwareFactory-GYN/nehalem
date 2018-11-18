@@ -13,14 +13,11 @@ var CassandraSession *gocql.Session
 
 func initRouter(r *mux.Router) {
 
-	// We will setup our server so we can serve static assest like images, css from the /static/{file} route
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
-
 	// Endpoint used to serve login page
-	r.Handle("/login", LoginHandler).Methods("POST")
+	r.Handle("/api/login", LoginHandler).Methods("POST")
 
 	// Endpoint for registering
-	r.Handle("/register", RegisterHandler).Methods("POST")
+	r.Handle("/api/register", RegisterHandler).Methods("POST")
 
 	//Index endpoint
 	r.Handle("/", jwtMiddleware.Handler(IndexHandler)).Methods("GET")
