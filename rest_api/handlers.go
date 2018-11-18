@@ -3,20 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gocql/gocql"
 	"net/http"
 	"reflect"
 	"time"
 )
-
-type User struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type InvalidResponse struct {
-	TypeOfError string `json:"type"`
-	Description string `json:"detail"`
-}
 
 // This function will search element inside array with any type.
 // Will return boolean and index for matched element.
@@ -97,7 +88,30 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.Write([]byte("Login page should go here"))
+	username := r.PostForm.Get("username")
+	//password := r.PostForm.Get("password")
+
+	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' ALLOW FILTERING", username)
+	iter := CassandraSession.Query(query).Consistency(gocql.One).Iter()
+	size := iter.NumRows()
+
+	if size > 1 {
+		errString := fmt.Sprintf("%s: Too many users found %s", http.StatusText(http.StatusInternalServerError), iter.NumRows())
+		http.Error(w, errString, http.StatusInternalServerError)
+		return
+	}
+	if size == 0 {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	//salt the provided password and compare here
+
+	user := map[string]interface{}{}
+	iter.MapScan(user)
+
+	s := fmt.Sprintf("Found: User %s, Password %s ", user["username"], user["password"])
+	w.Write([]byte(s))
 })
 
 var IndexHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
