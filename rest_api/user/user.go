@@ -1,7 +1,9 @@
-package main
+package user
 
 import (
 	"fmt"
+	"github.com/SoftwareFactory-GYN/nehalem/rest_api/db"
+	"github.com/SoftwareFactory-GYN/nehalem/rest_api/secret"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gocql/gocql"
 	"golang.org/x/crypto/bcrypt"
@@ -18,7 +20,7 @@ type UserToken struct {
 }
 
 // Salt and hash
-func hashAndSalt(pwd []byte) string {
+func HashAndSalt(pwd []byte) string {
 
 	// Use GenerateFromPassword to hash & salt pwd.
 	// MinCost is just an integer constant provided by the bcrypt
@@ -36,7 +38,7 @@ func hashAndSalt(pwd []byte) string {
 }
 
 // Compare salts
-func comparePasswords(hashedPwd string, plainPwd []byte) bool {
+func ComparePasswords(hashedPwd string, plainPwd []byte) bool {
 
 	// Since we'll be getting the hashed password from the DB it
 	// will be a string so we'll need to convert it to a byte slice
@@ -53,7 +55,7 @@ func comparePasswords(hashedPwd string, plainPwd []byte) bool {
 }
 
 // Create a token for a user
-func (u *User) getToken() string {
+func (u *User) GetToken() string {
 	/* Create the token */
 	token := jwt.New(jwt.SigningMethodHS256)
 
@@ -65,13 +67,16 @@ func (u *User) getToken() string {
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 
 	/* Sign the token with our secret */
-	tokenString, _ := token.SignedString(mySigningKey)
+	tokenString, _ := token.SignedString(secret.GetSigningKey())
 
 	return tokenString
 }
 
 // Check if user exists in persistence
-func (u *User) exists() bool {
+func (u *User) Exists() bool {
+
+	CassandraSession := db.GetSession()
+	defer CassandraSession.Close()
 
 	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' ALLOW FILTERING", u.Username)
 	iter := CassandraSession.Query(query).Consistency(gocql.One).Iter()
@@ -85,13 +90,16 @@ func (u *User) exists() bool {
 }
 
 //  Create a new user
-func (u *User) create() error {
+func (u *User) Create() error {
+
+	CassandraSession := db.GetSession()
+	defer CassandraSession.Close()
 
 	// generate a unique UUID for this user
-	userID := gocql.TimeUUID()
+	userID, _ := gocql.RandomUUID()
 
 	// Salt the password
-	password := hashAndSalt([]byte(u.Password))
+	password := HashAndSalt([]byte(u.Password))
 
 	query := "INSERT INTO users (id, username, password) VALUES (?, ?, ?)"
 	err := CassandraSession.Query(query, userID, u.Username, password).Exec()
@@ -103,7 +111,10 @@ func (u *User) create() error {
 }
 
 // Fetch a user from the database
-func fetchUser(username string) (User, error) {
+func FetchUser(username string) (User, error) {
+
+	CassandraSession := db.GetSession()
+	defer CassandraSession.Close()
 
 	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' ALLOW FILTERING", username)
 	iter := CassandraSession.Query(query).Consistency(gocql.One).Iter()
