@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/SoftwareFactory-GYN/nehalem/rest_api/db"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -21,6 +22,9 @@ func initRouter(r *mux.Router) {
 }
 
 func main() {
+
+	svc := db.GetSession()
+	db.InitTables(svc)
 
 	r := mux.NewRouter()
 

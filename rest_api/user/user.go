@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"github.com/SoftwareFactory-GYN/nehalem/rest_api/db"
 	"github.com/SoftwareFactory-GYN/nehalem/rest_api/secret"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gocql/gocql"
 	"golang.org/x/crypto/bcrypt"
@@ -12,6 +16,7 @@ import (
 )
 
 type User struct {
+	Guid     string `json:"guid,omitempty"`
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
@@ -75,14 +80,37 @@ func (u *User) GetToken() string {
 // Check if user exists in persistence
 func (u *User) Exists() bool {
 
-	CassandraSession := db.GetSession()
-	defer CassandraSession.Close()
+	svc := db.GetSession()
 
-	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' ALLOW FILTERING", u.Username)
-	iter := CassandraSession.Query(query).Consistency(gocql.One).Iter()
-	size := iter.NumRows()
+	filt := expression.Name("username").Equal(expression.Value(u.Username))
 
-	if size > 0 {
+	// Get back the title, year, and rating
+	proj := expression.NamesList(expression.Name("username"), expression.Name("guid"), expression.Name("password"))
+
+	expr, err := expression.NewBuilder().WithFilter(filt).WithProjection(proj).Build()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	params := &dynamodb.ScanInput{
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		FilterExpression:          expr.Filter(),
+		ProjectionExpression:      expr.Projection(),
+		TableName:                 aws.String("users"),
+	}
+
+	// Make the DynamoDB Query API call
+	result, err := svc.Scan(params)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	exists := *result.Count
+
+	if exists > 0 {
 		return true
 	}
 
@@ -92,49 +120,84 @@ func (u *User) Exists() bool {
 //  Create a new user
 func (u *User) Create() error {
 
-	CassandraSession := db.GetSession()
-	defer CassandraSession.Close()
+	svc := db.GetSession()
 
 	// generate a unique UUID for this user
 	userID, _ := gocql.RandomUUID()
 
-	// Salt the password
-	password := HashAndSalt([]byte(u.Password))
+	u.Guid = userID.String()
 
-	query := "INSERT INTO users (id, username, password) VALUES (?, ?, ?)"
-	err := CassandraSession.Query(query, userID, u.Username, password).Exec()
+	// Salt the password
+	u.Password = HashAndSalt([]byte(u.Password))
+
+	av, err := dynamodbattribute.MarshalMap(u)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	input := &dynamodb.PutItemInput{
+		Item:      av,
+		TableName: aws.String("users"),
+	}
+
+	_, err = svc.PutItem(input)
+
+	return err
 }
 
 // Fetch a user from the database
 func FetchUser(username string) (User, error) {
 
-	CassandraSession := db.GetSession()
-	defer CassandraSession.Close()
+	svc := db.GetSession()
 
-	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' ALLOW FILTERING", username)
-	iter := CassandraSession.Query(query).Consistency(gocql.One).Iter()
+	filt := expression.Name("username").Equal(expression.Value(username))
 
-	size := iter.NumRows()
+	// Get back the title, year, and rating
+	proj := expression.NamesList(expression.Name("username"), expression.Name("guid"), expression.Name("password"))
 
-	if size == 0 {
-		return User{}, fmt.Errorf("user not found")
+	expr, err := expression.NewBuilder().WithFilter(filt).WithProjection(proj).Build()
+
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	if size > 1 {
-		return User{}, fmt.Errorf("integrity error: too many users found")
+	params := &dynamodb.ScanInput{
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		FilterExpression:          expr.Filter(),
+		ProjectionExpression:      expr.Projection(),
+		TableName:                 aws.String("users"),
 	}
 
-	m := map[string]interface{}{}
-	iter.MapScan(m)
+	// Make the DynamoDB Query API call
+	result, err := svc.Scan(params)
 
-	return User{
-		m["username"].(string),
-		m["password"].(string),
-	}, nil
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	exists := *result.Count
+
+	if exists == 0 {
+		return User{}, fmt.Errorf("integrity error: user not found")
+	} else if exists > 1 {
+		return User{}, fmt.Errorf("integrity error: more than one user found")
+	}
+
+	user := User{}
+
+	for _, i := range result.Items {
+
+		err = dynamodbattribute.UnmarshalMap(i, &user)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		break
+
+	}
+
+	return user, nil
 
 }

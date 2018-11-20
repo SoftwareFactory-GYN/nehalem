@@ -48,6 +48,7 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 	}
 
 	attemptingUser := user.User{
+		"",
 		r.PostForm.Get("username"),
 		r.PostForm.Get("password"),
 	}
@@ -121,6 +122,7 @@ var RegisterHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 	}
 
 	newUser := user.User{
+		"",
 		r.PostForm.Get("username"),
 		r.PostForm.Get("password"),
 	}
