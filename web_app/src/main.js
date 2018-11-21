@@ -3,7 +3,12 @@ import './plugins/vuetify'
 import App from './App.vue'
 import router from './router'
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
+
+router.beforeEach((to, from, next) => {
+    document.title = to.meta.title;
+    next()
+});
 
 new Vue({
   router,

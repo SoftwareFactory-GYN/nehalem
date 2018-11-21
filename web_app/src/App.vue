@@ -1,38 +1,50 @@
 <template>
-  <v-app>
-    <v-toolbar app>
-      <v-toolbar-title class="headline text-uppercase">
-        <span>Vuetify</span>
-        <span class="font-weight-light">MATERIAL DESIGN</span>
-      </v-toolbar-title>
-      <v-spacer></v-spacer>
-      <v-btn
-        flat
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-      >
-        <span class="mr-2">Latest Release</span>
-      </v-btn>
-    </v-toolbar>
-
-    <v-content>
-      <HelloWorld/>
-    </v-content>
-  </v-app>
+  <div id="app">
+    <div id="nav">
+      <router-link v-if="authenticated" to="/login" v-on:click.native="logout()" replace>Logout</router-link>
+    </div>
+    <router-view @authenticated="setAuthenticated" />
+  </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld'
-
-export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  },
-  data () {
-    return {
-      //
+    export default {
+        name: 'App',
+        data() {
+            return {
+                authenticated: false,
+                mockAccount: {
+                    username: "nsm",
+                    password: "nsm"
+                }
+            }
+        },
+        mounted() {
+            if(!this.authenticated) {
+                this.$router.replace({ name: "login" });
+            }
+        },
+        methods: {
+            setAuthenticated(status) {
+                this.authenticated = status;
+            },
+            logout() {
+                this.authenticated = false;
+            }
+        }
     }
-  }
-}
 </script>
+
+<style>
+  body {
+    background-color: #F0F0F0;
+  }
+  h1 {
+    padding: 0;
+    margin-top: 0;
+  }
+  #app {
+    width: 1024px;
+    margin: auto;
+  }
+</style>
