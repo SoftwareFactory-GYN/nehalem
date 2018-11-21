@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/SoftwareFactory-GYN/nehalem/rest_api/db"
+	"github.com/SoftwareFactory-GYN/nehalem/rest_api/middleware"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -18,7 +19,7 @@ func initRouter(r *mux.Router) {
 	r.Handle("/api/register", RegisterHandler).Methods("POST")
 
 	//Index endpoint
-	r.Handle("/", jwtMiddleware.Handler(IndexHandler)).Methods("GET")
+	r.Handle("/", middleware.JwtMiddleware.Handler(IndexHandler)).Methods("GET")
 }
 
 func main() {
