@@ -18,6 +18,10 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
+	if r.Method == http.MethodOptions {
+		return
+	}
+
 	if err := r.ParseMultipartForm(5); err != nil {
 		errString := fmt.Sprintf("%s: %s", http.StatusText(http.StatusInternalServerError), err)
 		http.Error(w, errString, http.StatusInternalServerError)
@@ -87,6 +91,11 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 var RegisterHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == http.MethodOptions {
+		return
+	}
 
 	if err := r.ParseMultipartForm(5); err != nil {
 		errString := fmt.Sprintf("%s: %s", http.StatusText(http.StatusInternalServerError), err)

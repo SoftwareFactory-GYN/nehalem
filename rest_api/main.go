@@ -13,10 +13,10 @@ import (
 func initRouter(r *mux.Router) {
 
 	// Endpoint used to serve login page
-	r.Handle("/api/login", LoginHandler).Methods("POST")
+	r.Handle("/api/login", LoginHandler).Methods("POST", "OPTIONS")
 
 	// Endpoint for registering
-	r.Handle("/api/register", RegisterHandler).Methods("POST")
+	r.Handle("/api/register", RegisterHandler).Methods("POST", "OPTIONS")
 
 	//Index endpoint
 	r.Handle("/", middleware.JwtMiddleware.Handler(IndexHandler)).Methods("GET")

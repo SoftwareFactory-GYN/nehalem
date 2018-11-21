@@ -40,14 +40,17 @@
 </template>
 
 <script>
+    import axios from 'axios'
+
+
 
     export default {
-
         name: 'Login',
         data() {
             return {
                 drawer: null,
                 errors: [],
+                token: "",
                 input: {
                     username: "",
                     password: ""
@@ -56,6 +59,10 @@
         },
         methods: {
             login() {
+
+
+                var self = this;
+
                 if (!this.input.username) {
                     this.errors.push('Username required.');
                 }
@@ -64,15 +71,55 @@
                 }
 
                 if (this.input.username && this.input.password) {
-                    if (this.input.username === this.$parent.mockAccount.username && this.input.password === this.$parent.mockAccount.password) {
-                        this.$emit("authenticated", true);
-                        this.$router.replace({name: "secure"});
-                    } else {
-                        this.errors.push("The username and / or password is incorrect");
-                    }
+
+                    let api = this.getAPI();
+
+                    let formData = new FormData();
+
+                    formData.append("username",this.input.username);
+                    formData.append("password", this.input.password);
+
+
+                    api.post('login', formData)
+                        .then(function (response) {
+                            // handle success
+                            console.log(response);
+
+                            // if (this.input.username === this.$parent.mockAccount.username && this.input.password === this.$parent.mockAccount.password) {
+                            //     this.$emit("authenticated", true);
+                            //     this.$router.replace({name: "secure"});
+                            // } else {
+                            //     this.errors.push("The username and / or password is incorrect");
+                            // }
+
+
+
+                        })
+                        .catch(function (error) {
+                            // handle error
+                            console.error(error);
+                            if(error.response && error.response.status == 404){
+                                self.errors.push("User not found!");
+                            }
+                        });
+
+
+
                 }
 
 
+            },
+            getAPI(){
+                let getUrl = window.location;
+                let baseUrl = getUrl .protocol + "//localhost:3000";
+
+                return axios.create({
+                    baseURL: baseUrl + '/api/',
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Headers': 'Content-Type',
+                    },
+                });
             }
         },
         props: {
