@@ -3,14 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/SoftwareFactory-GYN/nehalem/rest_api/secret"
 	"github.com/SoftwareFactory-GYN/nehalem/rest_api/user"
 	"github.com/SoftwareFactory-GYN/nehalem/rest_api/utils"
 	"log"
 	"net/http"
 )
-
-var mySigningKey = secret.GetSigningKey()
 
 type InvalidResponse struct {
 	Error string `json:"detail"`
@@ -19,6 +16,7 @@ type InvalidResponse struct {
 var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	if err := r.ParseMultipartForm(5); err != nil {
 		errString := fmt.Sprintf("%s: %s", http.StatusText(http.StatusInternalServerError), err)
@@ -54,12 +52,8 @@ var LoginHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 	}
 
 	if !attemptingUser.Exists() {
-		invalid := InvalidResponse{
-			"user not found",
-		}
-
-		b, _ := json.Marshal(invalid)
-		w.Write(b)
+		err := fmt.Sprintf("%s: %s", http.StatusText(http.StatusNotFound), "user not found")
+		http.Error(w, err, http.StatusNotFound)
 		return
 	}
 
