@@ -15,7 +15,7 @@ import (
 func GetSession() *dynamodb.DynamoDB {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal(err)
 	}
 
 	creds := credentials.NewEnvCredentials()
