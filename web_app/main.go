@@ -5,21 +5,28 @@ import (
 	"net/http"
 )
 
-func middlewareOne(next http.Handler) http.Handler {
+func middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Executing middlewareOne")
-		next.ServeHTTP(w, r)
-		log.Println("Executing middlewareOne again")
+
+		auth := r.Header.Get("Authorization")
+
+		if auth != "" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		http.Redirect(w, r, "/login", 301)
+
 	})
 }
-func final(w http.ResponseWriter, r *http.Request) {
-	log.Println("Executing finalHandler")
+func okView(w http.ResponseWriter, r *http.Request) {
+	log.Println("in view")
 	w.Write([]byte("OK"))
 }
 
 func main() {
-	finalHandler := http.HandlerFunc(final)
+	finalHandler := http.HandlerFunc(okView)
 
-	http.Handle("/", middlewareOne(finalHandler))
-	http.ListenAndServe(":3000", nil)
+	http.Handle("/", middleware(finalHandler))
+	http.ListenAndServe(":3001", nil)
 }
