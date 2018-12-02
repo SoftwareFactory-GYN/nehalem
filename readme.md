@@ -15,7 +15,6 @@ constructs. With these metrics in hand we can supply graphs to aid and support d
 quality assurance.
 
 
-
 Current supported languages include:
 - [x] Python
 - [x] GoLang
