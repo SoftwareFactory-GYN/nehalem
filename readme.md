@@ -1,5 +1,3 @@
-
-
 # Nehalem
 
 > Code quality metrics run in isolated docker containers.
